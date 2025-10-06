@@ -1,0 +1,74 @@
+{
+  "test_scenarios": [
+    {
+      "scenario_name": "successful_verification",
+      "description": "Standard successful flow with employed applicant",
+      "applicant_data": {
+        "name": "Michael Thompson",
+        "date_of_birth": "1985-03-15",
+        "ssn_last_four": "7234",
+        "mailing_address": {
+          "street": "1247 Oak Street",
+          "unit": "Unit 3B",
+          "city": "Denver",
+          "state": "Colorado",
+          "zip_code": "80202"
+        },
+        "email": "mthompson.denver@gmail.com",
+        "monthly_income": 6500,
+        "job_tenure_months": 42,
+        "application_job_tenure": 36
+      },
+      "expected_flow": ["identity_verification", "contact_information", "employment_verification", "final_confirmation"],
+      "expected_outcome": "success"
+    },
+    {
+      "scenario_name": "identity_verification_failure",
+      "description": "Wrong SSN and DOB provided multiple times",
+      "applicant_data": {
+        "name": "Jennifer Martinez",
+        "correct_date_of_birth": "1990-06-22",
+        "correct_ssn_last_four": "3891",
+        "provided_date_of_birth": "1991-06-22",
+        "provided_ssn_last_four": "8492"
+      },
+      "expected_flow": ["identity_verification"],
+      "expected_outcome": "failure",
+      "failure_reason": "identity_verification_failed"
+    },
+    {
+      "scenario_name": "job_tenure_discrepancy",
+      "description": "Significant difference between stated and application tenure",
+      "applicant_data": {
+        "name": "Robert Johnson",
+        "date_of_birth": "1978-11-30",
+        "ssn_last_four": "9156",
+        "mailing_address": {
+          "street": "456 Pine Avenue",
+          "unit": "Apt 12",
+          "city": "Seattle",
+          "state": "Washington",
+          "zip_code": "98101"
+        },
+        "email": "rjohnson@techcorp.com",
+        "monthly_income": 8500,
+        "job_tenure_months": 8,
+        "application_job_tenure": 60
+      },
+      "expected_flow": ["identity_verification", "contact_information", "employment_verification", "final_confirmation"],
+      "expected_outcome": "success_with_clarification"
+    }
+  ],
+  "system_variables": {
+    "job_tenure_threshold_months": 15,
+    "max_identity_attempts": 2,
+    "required_fields": ["name", "date_of_birth", "ssn_last_four", "mailing_address", "monthly_income"],
+    "optional_fields": ["email", "unit_number"]
+  },
+  "response_templates": {
+    "identity_failure": "I understand this can be frustrating. However, the last four digits of your Social Security Number and date of birth are required to proceed with the verification. Since we're unable to verify this information today, I'll need to conclude our call. Thank you for your time, and please feel free to call back when you have this information available.",
+    "job_tenure_discrepancy": "I show on your application that you've been employed for {application_tenure} months. Can you help me understand the difference between what you're telling me now - {stated_tenure} months - and what's shown on the application?",
+    "unit_number_prompt": "Is there a unit number or apartment number for this address?",
+    "final_confirmation": "Let me summarize the information we've collected today to make sure everything is accurate..."
+  }
+}
