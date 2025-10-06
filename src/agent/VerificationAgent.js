@@ -246,8 +246,12 @@ class VerificationAgent {
       // Use LLM to extract income
       const { income } = await extractEntities(userResponse, { income: 'The user\'s monthly income as a number' });
       
-      if (income && validateIncome(parseInt(income))) {
-        this.conversationState.collectedData.monthlyIncome = parseInt(income);
+      // Clean income string - remove currency symbols and text
+      const cleanIncome = income.replace(/[$,]/g, '').replace(/[^\d]/g, '');
+      const incomeValue = parseInt(cleanIncome);
+      
+      if (incomeValue && validateIncome(incomeValue)) {
+        this.conversationState.collectedData.monthlyIncome = incomeValue;
         this.transitionTo('EMPLOYMENT_TENURE');
       } else {
         // Ask again if invalid
@@ -298,8 +302,14 @@ class VerificationAgent {
       this.conversationState.context.applicationTenure = applicationTenure;
       this.conversationState.context.statedTenure = statedTenure;
       
-      // Stay on this node to handle the discrepancy
-      this.conversationState.currentNodeId = 'TENURE_DISCREPANCY_CHECK';
+      // If this is the first time showing the discrepancy, stay on this node
+      if (!this.conversationState.context.discrepancyShown) {
+        this.conversationState.context.discrepancyShown = true;
+        this.conversationState.currentNodeId = 'TENURE_DISCREPANCY_CHECK';
+      } else {
+        // User has responded to discrepancy, proceed to final confirmation
+        this.transitionTo('FINAL_CONFIRMATION');
+      }
     } else {
       // No discrepancy, proceed to final confirmation
       this.transitionTo('FINAL_CONFIRMATION');
