@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "node test-agent.js",
+    "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "start": "node src/simulator.js",
     "dev": "nodemon src/simulator.js"
   },
