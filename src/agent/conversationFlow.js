@@ -88,7 +88,26 @@ export const nodes = {
   
   FINAL_CONFIRMATION: {
     id: 'FINAL_CONFIRMATION',
-    prompt: (context) => `Let me summarize the information we've collected today to make sure everything is accurate. ${context.summary}. Is all of this information correct?`,
+    prompt: (context) => {
+      const data = context.collectedData;
+      const address = data.address;
+      const email = data.email ? formatSpokenEmail(data.email) : 'No email provided';
+      
+      // Build comprehensive summary
+      let summary = `Your date of birth is ${formatSpokenDate(data.dob)}. `;
+      summary += `Your mailing address is ${formatSpokenAddress(address)}. `;
+      summary += `Your email is ${email}. `;
+      summary += `Your monthly income is ${formatSpokenCurrency(data.monthlyIncome)}`;
+      
+      // Add tenure information based on employment status
+      if (data.employmentStatus === 'self_employed') {
+        summary += `, and you're self-employed`;
+      } else if (data.jobTenure) {
+        summary += `, and you've been with your current employer for ${data.jobTenure} months`;
+      }
+      
+      return `Let me summarize the information we've collected today to make sure everything is accurate. ${summary}. Is all of this information correct?`;
+    },
     handler: 'handleFinalConfirmation',
     next: 'COMPLETION'
   },

@@ -410,8 +410,39 @@ class VerificationAgent {
         this.conversationState.context.discrepancyShown = true;
         this.conversationState.currentNodeId = 'TENURE_DISCREPANCY_CHECK';
       } else {
-        // User has responded to discrepancy, proceed to final confirmation
-        this.transitionTo('FINAL_CONFIRMATION');
+        // User has responded to discrepancy, analyze their explanation
+        const explanation = userResponse.toLowerCase();
+        
+        // Log the user's response to the discrepancy
+        this.logger.logStep('tenure_discrepancy_response', {
+          userResponse,
+          applicationTenure,
+          statedTenure,
+          explanation
+        });
+        
+        // Check if user provides a reasonable explanation
+        if (explanation.includes('promotion') || explanation.includes('new position') || 
+            explanation.includes('same company') || explanation.includes('different role') ||
+            explanation.includes('clarify') || explanation.includes('explain') ||
+            explanation.includes('confusion') || explanation.includes('understand')) {
+          
+          // User provided explanation, acknowledge and proceed
+          this.logger.logStep('tenure_discrepancy_resolved', {
+            explanation: userResponse,
+            resolved: true
+          });
+          
+          this.transitionTo('FINAL_CONFIRMATION');
+        } else {
+          // Ask for more clarification or accept and proceed
+          this.logger.logStep('tenure_discrepancy_acknowledged', {
+            userResponse,
+            proceeding: true
+          });
+          
+          this.transitionTo('FINAL_CONFIRMATION');
+        }
       }
     } else {
       // No discrepancy, proceed to final confirmation
@@ -426,13 +457,35 @@ class VerificationAgent {
   async handleFinalConfirmation(userResponse) {
     const response = userResponse.toLowerCase();
     
+    // Log the final confirmation response
+    this.logger.logStep('final_confirmation_response', {
+      userResponse,
+      response: response,
+      confirmed: response.includes('yes') || response.includes('correct') || response.includes('ok') || response.includes('good')
+    });
+    
     if (response.includes('yes') || response.includes('correct') || response.includes('ok') || response.includes('good')) {
+      // User confirms all information is correct
+      this.logger.logStep('verification_completed_successfully', {
+        finalData: this.conversationState.collectedData,
+        identityVerified: this.identityVerified
+      });
       this.transitionTo('COMPLETION');
     } else if (response.includes('no') || response.includes('not') || response.includes('wrong')) {
+      // User indicates information is incorrect
+      this.logger.logStep('final_confirmation_rejected', {
+        userResponse,
+        needsCorrection: true
+      });
+      
       // User wants to correct something, go back to appropriate section
       this.transitionTo('CONTACT_INFO_ADDRESS');
     } else {
       // Ambiguous response, ask for clarification
+      this.logger.logStep('final_confirmation_ambiguous', {
+        userResponse,
+        needsClarification: true
+      });
       this.conversationState.currentNodeId = 'FINAL_CONFIRMATION';
     }
   }
