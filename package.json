@@ -13,7 +13,10 @@
     "evaluate:all": "node scripts/evaluate-multiple-datasets.js",
     "generate:successful": "node scripts/generate-mock-data.js 10 successful",
     "generate:failure": "node scripts/generate-mock-data.js 5 identity_failure",
-    "generate:mixed": "node scripts/generate-mock-data.js 20 mixed --llm"
+    "generate:mixed": "node scripts/generate-mock-data.js 20 mixed --llm",
+    "analyze": "node scripts/analyze-conversations.js",
+    "dashboard": "node scripts/conversation-dashboard.js",
+    "simulator:generated": "node src/simulator-with-generated-data.js"
   },
   "keywords": [
     "ai",

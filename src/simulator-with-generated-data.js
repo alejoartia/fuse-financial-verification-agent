@@ -96,13 +96,20 @@ async function runSimulationWithGeneratedData() {
       // Use generated applicant data
       const agent = new VerificationAgent(selectedScenario.applicant_data);
       
-      console.log(`\nRunning simulation for: ${selectedScenario.applicant_data.name}`);
-      console.log(`DOB: ${selectedScenario.applicant_data.date_of_birth}`);
-      console.log(`SSN Last 4: ${selectedScenario.applicant_data.ssn_last_four}`);
-      console.log(`Address: ${selectedScenario.applicant_data.mailing_address.street}, ${selectedScenario.applicant_data.mailing_address.city}`);
-      console.log(`Email: ${selectedScenario.applicant_data.email}`);
-      console.log(`Income: $${selectedScenario.applicant_data.monthly_income}/month`);
-      console.log(`Tenure: ${selectedScenario.applicant_data.job_tenure_months} months\n`);
+      console.log(`\nRunning simulation for: ${selectedScenario.applicant_data.name || 'Unknown'}`);
+      console.log(`DOB: ${selectedScenario.applicant_data.date_of_birth || 'Not provided'}`);
+      console.log(`SSN Last 4: ${selectedScenario.applicant_data.ssn_last_four || 'Not provided'}`);
+      
+      const address = selectedScenario.applicant_data.mailing_address;
+      if (address) {
+        console.log(`Address: ${address.street || 'Unknown'}, ${address.city || 'Unknown'}`);
+      } else {
+        console.log(`Address: Not provided`);
+      }
+      
+      console.log(`Email: ${selectedScenario.applicant_data.email || 'Not provided'}`);
+      console.log(`Income: $${selectedScenario.applicant_data.monthly_income || 'Not provided'}/month`);
+      console.log(`Tenure: ${selectedScenario.applicant_data.job_tenure_months || 'Not provided'} months\n`);
       
       let agentPrompt = agent.generatePrompt();
       while (agentPrompt) {

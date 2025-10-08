@@ -2,6 +2,7 @@ import { nodes } from './conversationFlow.js';
 import { extractEntities, getConfirmation } from '../services/llmService.js';
 import { validateDob, validateSsnLast4, validateEmail, validateIncome, validateTenure, validateAddress } from '../utils/validators.js';
 import { formatSpokenDate, formatSpokenDigits, formatSpokenEmail, formatSpokenCurrency, formatSpokenAddress } from '../utils/formatters.js';
+import ConversationLogger from '../utils/conversationLogger.js';
 
 class VerificationAgent {
   constructor(applicantData, config = {}) {
@@ -28,6 +29,19 @@ class VerificationAgent {
     
     // Security gate
     this.identityVerified = false;
+    
+    // Initialize conversation logger
+    this.logger = new ConversationLogger({
+      enableFileLogging: config.enableLogging !== false,
+      enableConsoleLogging: config.enableConsoleLogging !== false,
+      logDir: config.logDir || 'logs'
+    });
+    
+    // Log conversation start
+    this.logger.logStep('conversation_start', {
+      applicantName: this.applicantData.name,
+      config: this.config
+    });
   }
 
   /**
@@ -55,14 +69,21 @@ class VerificationAgent {
     const currentNode = nodes[this.conversationState.currentNodeId];
     
     if (!currentNode) {
+      this.logger.logError(`Current node not found: ${this.conversationState.currentNodeId}`, {
+        currentNodeId: this.conversationState.currentNodeId
+      }, 'high');
       return "Error: Current node not found.";
     }
+    
+    // Log user response
+    this.logger.logUserResponse(userResponse, this.conversationState.currentNodeId);
     
     // Execute the handler for the current node
     await this[currentNode.handler](userResponse);
     
     // Check if we've reached a terminal state
     if (nodes[this.conversationState.currentNodeId]?.isTerminal) {
+      this.logger.logCompletion(this.conversationState, 'terminal', this.conversationState.collectedData);
       return this.generatePrompt();
     }
     
