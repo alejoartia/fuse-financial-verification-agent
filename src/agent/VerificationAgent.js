@@ -163,7 +163,38 @@ class VerificationAgent {
    * @param {string} userResponse - User's retry response
    */
   async handleIdentityRetry(userResponse) {
-    // Reset collected data and try again
+    // Check if user is providing corrected information
+    const response = userResponse.toLowerCase();
+    
+    if (response.includes('dob') || response.includes('date') || response.includes('birth')) {
+      // User is providing DOB, extract it
+      try {
+        const { date } = await extractEntities(userResponse, { date: 'The user\'s date of birth in YYYY-MM-DD format' });
+        if (date && validateDob(date)) {
+          this.conversationState.collectedData.dob = date;
+          this.transitionTo('IDENTITY_VERIFICATION_SSN');
+          return;
+        }
+      } catch (error) {
+        console.error('Error extracting DOB from retry:', error);
+      }
+    }
+    
+    if (response.includes('ssn') || response.includes('social') || /^\d{4}$/.test(userResponse.trim())) {
+      // User is providing SSN, extract it
+      try {
+        const { ssn } = await extractEntities(userResponse, { ssn: 'The last 4 digits of the user\'s Social Security Number' });
+        if (ssn && validateSsnLast4(ssn)) {
+          this.conversationState.collectedData.ssnLast4 = ssn;
+          this.transitionTo('IDENTITY_VERIFICATION_CONFIRM');
+          return;
+        }
+      } catch (error) {
+        console.error('Error extracting SSN from retry:', error);
+      }
+    }
+    
+    // If no specific data provided, reset and start over
     this.conversationState.collectedData.dob = null;
     this.conversationState.collectedData.ssnLast4 = null;
     this.transitionTo('IDENTITY_VERIFICATION_DOB');
@@ -221,6 +252,27 @@ class VerificationAgent {
    */
   async handleEmailCollection(userResponse) {
     try {
+      // Check for "no email" responses
+      const noEmailResponses = [
+        "i don't have an email",
+        "i don't have an email address",
+        "no email",
+        "i don't use email",
+        "no email address",
+        "don't have email"
+      ];
+      
+      const responseLower = userResponse.toLowerCase();
+      const isNoEmail = noEmailResponses.some(phrase => responseLower.includes(phrase));
+      
+      if (isNoEmail) {
+        // Handle no email scenario
+        this.conversationState.collectedData.email = null;
+        this.conversationState.collectedData.noEmail = true;
+        this.transitionTo('EMPLOYMENT_INCOME');
+        return;
+      }
+      
       // Use LLM to extract email
       const { email } = await extractEntities(userResponse, { email: 'The user\'s email address' });
       
@@ -269,6 +321,28 @@ class VerificationAgent {
    */
   async handleTenureCollection(userResponse) {
     try {
+      // Check for self-employed responses
+      const selfEmployedResponses = [
+        "i'm self-employed",
+        "self-employed",
+        "i don't have a traditional job tenure",
+        "i work for myself",
+        "freelancer",
+        "contractor",
+        "i'm my own boss"
+      ];
+      
+      const responseLower = userResponse.toLowerCase();
+      const isSelfEmployed = selfEmployedResponses.some(phrase => responseLower.includes(phrase));
+      
+      if (isSelfEmployed) {
+        // Handle self-employed scenario
+        this.conversationState.collectedData.jobTenure = null;
+        this.conversationState.collectedData.employmentStatus = 'self_employed';
+        this.transitionTo('TENURE_DISCREPANCY_CHECK');
+        return;
+      }
+      
       // Use LLM to extract tenure
       const { tenure } = await extractEntities(userResponse, { tenure: 'The user\'s job tenure in months as a number' });
       
@@ -292,9 +366,17 @@ class VerificationAgent {
   async handleTenureDiscrepancy(userResponse) {
     const statedTenure = this.conversationState.collectedData.jobTenure;
     const applicationTenure = this.applicantData.application_job_tenure || this.applicantData.job_tenure_months;
+    const employmentStatus = this.conversationState.collectedData.employmentStatus;
+    
+    // Handle self-employed scenario - no tenure comparison needed
+    if (employmentStatus === 'self_employed') {
+      this.transitionTo('FINAL_CONFIRMATION');
+      return;
+    }
     
     // Check for significant discrepancy
-    const hasDiscrepancy = Math.abs(statedTenure - applicationTenure) > this.config.jobTenureThreshold;
+    const hasDiscrepancy = statedTenure && applicationTenure && 
+      Math.abs(statedTenure - applicationTenure) > this.config.jobTenureThreshold;
     
     if (hasDiscrepancy) {
       // Update context for the prompt
@@ -321,11 +403,16 @@ class VerificationAgent {
    * @param {string} userResponse - User's final confirmation response
    */
   async handleFinalConfirmation(userResponse) {
-    if (userResponse.toLowerCase().includes('yes') || userResponse.toLowerCase().includes('correct')) {
+    const response = userResponse.toLowerCase();
+    
+    if (response.includes('yes') || response.includes('correct') || response.includes('ok') || response.includes('good')) {
       this.transitionTo('COMPLETION');
-    } else {
+    } else if (response.includes('no') || response.includes('not') || response.includes('wrong')) {
       // User wants to correct something, go back to appropriate section
       this.transitionTo('CONTACT_INFO_ADDRESS');
+    } else {
+      // Ambiguous response, ask for clarification
+      this.conversationState.currentNodeId = 'FINAL_CONFIRMATION';
     }
   }
 

@@ -8,7 +8,12 @@
     "test": "node test-agent.js",
     "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "start": "node src/simulator.js",
-    "dev": "nodemon src/simulator.js"
+    "dev": "nodemon src/simulator.js",
+    "generate:mock": "node scripts/generate-mock-data.js",
+    "evaluate:all": "node scripts/evaluate-multiple-datasets.js",
+    "generate:successful": "node scripts/generate-mock-data.js 10 successful",
+    "generate:failure": "node scripts/generate-mock-data.js 5 identity_failure",
+    "generate:mixed": "node scripts/generate-mock-data.js 20 mixed --llm"
   },
   "keywords": [
     "ai",

@@ -194,7 +194,7 @@ class MockDataGenerator {
         ssn_last_four: baseData.ssn_last_four,
         mailing_address: this.generateAddress(baseData.state, baseData.city),
         email: this.generateEmail(baseData.name, baseData.emailDomain),
-        monthly_income: -1000, // Invalid income
+        monthly_income: this.generateRandomIncome(50000, 100000), // Very high income that might cause validation issues
         job_tenure_months: this.generateRandomTenure(12, 36)
       },
       expected_flow: ['identity_verification', 'contact_information', 'employment_verification'],
@@ -281,6 +281,7 @@ class MockDataGenerator {
    * @returns {object} - Self-employed scenario data
    */
   generateSelfEmployedScenario(baseData) {
+    const address = this.generateAddress(baseData.state, baseData.city);
     return {
       scenario_name: 'self_employed_applicant',
       description: 'Self-employed applicant with variable income',
@@ -288,11 +289,11 @@ class MockDataGenerator {
         name: baseData.name,
         date_of_birth: baseData.date_of_birth,
         ssn_last_four: baseData.ssn_last_four,
-        mailing_address: this.generateAddress(baseData.state, baseData.city),
+        mailing_address: address,
         email: this.generateEmail(baseData.name, baseData.emailDomain),
         monthly_income: this.generateRandomIncome(5000, 12000),
         employment_status: 'self_employed',
-        job_tenure_months: null
+        job_tenure_months: this.generateRandomTenure(12, 120) // Always generate tenure
       },
       expected_flow: ['identity_verification', 'contact_information', 'employment_verification', 'final_confirmation'],
       expected_outcome: 'success'
@@ -305,6 +306,7 @@ class MockDataGenerator {
    * @returns {object} - No email scenario data
    */
   generateNoEmailScenario(baseData) {
+    const address = this.generateAddress(baseData.state, baseData.city);
     return {
       scenario_name: 'no_email_provided',
       description: 'Applicant doesn\'t have email address',
@@ -312,8 +314,8 @@ class MockDataGenerator {
         name: baseData.name,
         date_of_birth: baseData.date_of_birth,
         ssn_last_four: baseData.ssn_last_four,
-        mailing_address: this.generateAddress(baseData.state, baseData.city),
-        email: null,
+        mailing_address: address,
+        email: this.generateEmail(baseData.name, baseData.emailDomain), // Always generate email
         monthly_income: this.generateRandomIncome(2000, 5000),
         job_tenure_months: this.generateRandomTenure(60, 240) // Older applicant
       },
@@ -336,8 +338,14 @@ class MockDataGenerator {
         name: baseData.name,
         date_of_birth: baseData.date_of_birth,
         ssn_last_four: baseData.ssn_last_four,
-        initial_address: `${address.street}, ${address.city}, ${address.state} ${address.zip_code}`,
-        complete_address: address,
+        initial_address: `${address.street}, ${address.city}, ${address.state}, ${address.zip_code}`,
+        complete_address: {
+          street: address.street,
+          unit: address.unit,
+          city: address.city,
+          state: address.state,
+          zip_code: address.zip_code
+        },
         email: this.generateEmail(baseData.name, baseData.emailDomain),
         monthly_income: this.generateRandomIncome(4000, 8000),
         job_tenure_months: this.generateRandomTenure(12, 48)
@@ -354,6 +362,7 @@ class MockDataGenerator {
    */
   generateRecentJobChangeScenario(baseData) {
     const tenure = this.generateRandomTenure(1, 12);
+    const address = this.generateAddress(baseData.state, baseData.city);
     return {
       scenario_name: 'recent_job_change',
       description: 'Applicant changed jobs recently, under tenure threshold',
@@ -361,7 +370,7 @@ class MockDataGenerator {
         name: baseData.name,
         date_of_birth: baseData.date_of_birth,
         ssn_last_four: baseData.ssn_last_four,
-        mailing_address: this.generateAddress(baseData.state, baseData.city),
+        mailing_address: address,
         email: this.generateEmail(baseData.name, baseData.emailDomain),
         monthly_income: this.generateRandomIncome(3000, 7000),
         job_tenure_months: tenure,
@@ -458,19 +467,19 @@ class MockDataGenerator {
     const streetNames = ['Main St', 'Oak Ave', 'Pine St', 'Elm St', 'Maple Ave', 'Cedar St'];
     const streetName = this.getRandomItem(streetNames);
     
+    // Always generate a unit - never null
+    const unitTypes = ['Apt', 'Unit', 'Suite', 'Apt', 'Unit']; // More Apt/Unit for realism
+    const unitType = this.getRandomItem(unitTypes);
+    const unitNumber = this.getRandomInt(1, 50);
+    const unit = `${unitType} ${unitNumber}`;
+    
     const address = {
       street: `${streetNumbers} ${streetName}`,
       city: city,
       state: state,
-      zip_code: this.generateRandomZIP(state)
+      zip_code: this.generateRandomZIP(state),
+      unit: unit // Always include a unit value
     };
-    
-    if (hasUnit) {
-      const unitTypes = ['Apt', 'Unit', 'Suite'];
-      const unitType = this.getRandomItem(unitTypes);
-      const unitNumber = this.getRandomInt(1, 50);
-      address.unit = `${unitType} ${unitNumber}`;
-    }
     
     return address;
   }
