@@ -1,0 +1,308 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversation Dashboard</title>
+    <style>
+        
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    
+    .dashboard {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    header {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    h1 {
+      color: #2c3e50;
+    }
+    
+    .last-updated {
+      color: #666;
+      font-size: 0.9em;
+    }
+    
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .metric-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    
+    .metric-value {
+      font-size: 2.5em;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 5px;
+    }
+    
+    .metric-label {
+      color: #666;
+      font-size: 0.9em;
+    }
+    
+    .sessions-list {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .session-item {
+      border-bottom: 1px solid #eee;
+      padding: 15px 0;
+    }
+    
+    .session-item:last-child {
+      border-bottom: none;
+    }
+    
+    .session-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    
+    .session-id {
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    
+    .session-time {
+      color: #666;
+      font-size: 0.9em;
+    }
+    
+    .session-metrics {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .metric {
+      background: #f8f9fa;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 0.9em;
+      color: #666;
+    }
+    
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .chart-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .chart-container h3 {
+      margin-bottom: 15px;
+      color: #2c3e50;
+    }
+    
+    .chart {
+      display: flex;
+      align-items: end;
+      height: 150px;
+      gap: 2px;
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    
+    .bar {
+      flex: 1;
+      background: #3498db;
+      border-radius: 2px 2px 0 0;
+      min-height: 2px;
+      transition: all 0.3s ease;
+    }
+    
+    .bar:hover {
+      background: #2980b9;
+    }
+    
+    section {
+      margin-bottom: 30px;
+    }
+    
+    h2 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #3498db;
+    }
+  
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>Conversation Dashboard</h1>
+            <div class="last-updated">
+                Last updated: <span id="lastUpdated">2025-10-09 00:53:09</span>
+            </div>
+        </header>
+        
+        <main>
+            <section class="overview">
+                <h2>Overview</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">0</div>
+                        <div class="metric-label">Total Sessions</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">0s</div>
+                        <div class="metric-label">Avg Duration</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">0.0</div>
+                        <div class="metric-label">Avg Steps</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">0.0%</div>
+                        <div class="metric-label">Error Rate</div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="sessions">
+                <h2>Recent Sessions</h2>
+                <div class="sessions-list">
+                    
+                </div>
+            </section>
+            
+            <section class="charts">
+                <h2>Analytics</h2>
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>Session Duration</h3>
+                        <div class="chart" id="durationChart">
+                            
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Steps per Session</h3>
+                        <div class="chart" id="stepsChart">
+                            
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Error Distribution</h3>
+                        <div class="chart" id="errorChart">
+                            
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script>
+        
+    // Auto-refresh functionality
+    let refreshInterval;
+    
+    function startAutoRefresh() {
+      refreshInterval = setInterval(async () => {
+        try {
+          const response = await fetch('data.json');
+          const data = await response.json();
+          updateDashboard(data);
+        } catch (error) {
+          console.error('Failed to refresh data:', error);
+        }
+      }, 5000);
+    }
+    
+    function updateDashboard(data) {
+      // Update last updated time
+      document.getElementById('lastUpdated').textContent = 
+        new Date(data.timestamp).toLocaleString();
+      
+      // Update overview metrics
+      const totalSessions = data.totalSessions;
+      const avgDuration = data.conversations.reduce((sum, conv) => sum + conv.duration, 0) / totalSessions;
+      const avgSteps = data.conversations.reduce((sum, conv) => sum + conv.totalSteps, 0) / totalSessions;
+      const totalErrors = data.conversations.reduce((sum, conv) => sum + conv.errors, 0);
+      const totalSteps = data.conversations.reduce((sum, conv) => sum + conv.totalSteps, 0);
+      const errorRate = totalSteps > 0 ? (totalErrors / totalSteps) * 100 : 0;
+      
+      // Update metric cards
+      const metricCards = document.querySelectorAll('.metric-card');
+      if (metricCards.length >= 4) {
+        metricCards[0].querySelector('.metric-value').textContent = totalSessions;
+        metricCards[1].querySelector('.metric-value').textContent = formatDuration(avgDuration);
+        metricCards[2].querySelector('.metric-value').textContent = avgSteps.toFixed(1);
+        metricCards[3].querySelector('.metric-value').textContent = errorRate.toFixed(1) + '%';
+      }
+    }
+    
+    function formatDuration(duration) {
+      const seconds = Math.floor(duration / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      
+      if (hours > 0) {
+        return hours + 'h ' + (minutes % 60) + 'm ' + (seconds % 60) + 's';
+      } else if (minutes > 0) {
+        return minutes + 'm ' + (seconds % 60) + 's';
+      } else {
+        return seconds + 's';
+      }
+    }
+    
+    // Start auto-refresh when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      startAutoRefresh();
+    });
+    
+    // Stop auto-refresh when page unloads
+    window.addEventListener('beforeunload', () => {
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+      }
+    });
+  
+    </script>
+</body>
+</html>
+  
