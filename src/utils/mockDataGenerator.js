@@ -67,6 +67,16 @@ class MockDataGenerator {
         return this.generateAddressVariationsScenario(baseData);
       case 'employment_variations':
         return this.generateEmploymentVariationsScenario(baseData);
+      case 'self_employed':
+        return this.generateSelfEmployedScenario(baseData);
+      case 'no_email':
+        return this.generateNoEmailScenario(baseData);
+      case 'address_clarification':
+        return this.generateAddressClarificationScenario(baseData);
+      case 'recent_job_change':
+        return this.generateRecentJobChangeScenario(baseData);
+      case 'partial_identity_failure':
+        return this.generatePartialIdentityFailureScenario(baseData);
       default:
         return this.generateSuccessfulScenario(baseData);
     }
@@ -266,6 +276,138 @@ class MockDataGenerator {
   }
 
   /**
+   * Generate self-employed scenario
+   * @param {object} baseData - Base data
+   * @returns {object} - Self-employed scenario data
+   */
+  generateSelfEmployedScenario(baseData) {
+    return {
+      scenario_name: 'self_employed_applicant',
+      description: 'Self-employed applicant with variable income',
+      applicant_data: {
+        name: baseData.name,
+        date_of_birth: baseData.date_of_birth,
+        ssn_last_four: baseData.ssn_last_four,
+        mailing_address: this.generateAddress(baseData.state, baseData.city),
+        email: this.generateEmail(baseData.name, baseData.emailDomain),
+        monthly_income: this.generateRandomIncome(5000, 12000),
+        employment_status: 'self_employed',
+        job_tenure_months: null
+      },
+      expected_flow: ['identity_verification', 'contact_information', 'employment_verification', 'final_confirmation'],
+      expected_outcome: 'success'
+    };
+  }
+
+  /**
+   * Generate no email scenario
+   * @param {object} baseData - Base data
+   * @returns {object} - No email scenario data
+   */
+  generateNoEmailScenario(baseData) {
+    return {
+      scenario_name: 'no_email_provided',
+      description: 'Applicant doesn\'t have email address',
+      applicant_data: {
+        name: baseData.name,
+        date_of_birth: baseData.date_of_birth,
+        ssn_last_four: baseData.ssn_last_four,
+        mailing_address: this.generateAddress(baseData.state, baseData.city),
+        email: null,
+        monthly_income: this.generateRandomIncome(2000, 5000),
+        job_tenure_months: this.generateRandomTenure(60, 240) // Older applicant
+      },
+      expected_flow: ['identity_verification', 'contact_information', 'employment_verification', 'final_confirmation'],
+      expected_outcome: 'success'
+    };
+  }
+
+  /**
+   * Generate address clarification scenario
+   * @param {object} baseData - Base data
+   * @returns {object} - Address clarification scenario data
+   */
+  generateAddressClarificationScenario(baseData) {
+    const address = this.generateAddress(baseData.state, baseData.city, true);
+    return {
+      scenario_name: 'address_with_unit_clarification',
+      description: 'User initially forgets unit number',
+      applicant_data: {
+        name: baseData.name,
+        date_of_birth: baseData.date_of_birth,
+        ssn_last_four: baseData.ssn_last_four,
+        initial_address: `${address.street}, ${address.city}, ${address.state} ${address.zip_code}`,
+        complete_address: address,
+        email: this.generateEmail(baseData.name, baseData.emailDomain),
+        monthly_income: this.generateRandomIncome(4000, 8000),
+        job_tenure_months: this.generateRandomTenure(12, 48)
+      },
+      expected_flow: ['identity_verification', 'contact_information', 'employment_verification', 'final_confirmation'],
+      expected_outcome: 'success'
+    };
+  }
+
+  /**
+   * Generate recent job change scenario
+   * @param {object} baseData - Base data
+   * @returns {object} - Recent job change scenario data
+   */
+  generateRecentJobChangeScenario(baseData) {
+    const tenure = this.generateRandomTenure(1, 12);
+    return {
+      scenario_name: 'recent_job_change',
+      description: 'Applicant changed jobs recently, under tenure threshold',
+      applicant_data: {
+        name: baseData.name,
+        date_of_birth: baseData.date_of_birth,
+        ssn_last_four: baseData.ssn_last_four,
+        mailing_address: this.generateAddress(baseData.state, baseData.city),
+        email: this.generateEmail(baseData.name, baseData.emailDomain),
+        monthly_income: this.generateRandomIncome(3000, 7000),
+        job_tenure_months: tenure,
+        application_job_tenure: tenure,
+        job_change_reason: 'Career advancement opportunity'
+      },
+      expected_flow: ['identity_verification', 'contact_information', 'employment_verification', 'final_confirmation'],
+      expected_outcome: 'success_with_clarification'
+    };
+  }
+
+  /**
+   * Generate partial identity failure scenario
+   * @param {object} baseData - Base data
+   * @returns {object} - Partial identity failure scenario data
+   */
+  generatePartialIdentityFailureScenario(baseData) {
+    const wrongDob = this.generateRandomDOB();
+    const wrongSsn = this.generateRandomSSN();
+    
+    return {
+      scenario_name: 'partial_identity_failure_then_success',
+      description: 'User provides wrong info first, then corrects it',
+      applicant_data: {
+        name: baseData.name,
+        date_of_birth: baseData.date_of_birth,
+        ssn_last_four: baseData.ssn_last_four,
+        first_attempt: {
+          date_of_birth: wrongDob,
+          ssn_last_four: wrongSsn
+        },
+        second_attempt: {
+          date_of_birth: baseData.date_of_birth,
+          ssn_last_four: baseData.ssn_last_four
+        },
+        mailing_address: this.generateAddress(baseData.state, baseData.city),
+        email: this.generateEmail(baseData.name, baseData.emailDomain),
+        monthly_income: this.generateRandomIncome(4000, 10000),
+        job_tenure_months: this.generateRandomTenure(24, 120)
+      },
+      expected_flow: ['identity_verification', 'contact_information', 'employment_verification', 'final_confirmation'],
+      expected_outcome: 'success'
+    };
+  }
+
+  /**
    * Generate random date of birth
    * @returns {string} - Random DOB in YYYY-MM-DD format
    */
@@ -382,7 +524,11 @@ class MockDataGenerator {
     for (let i = 0; i < count; i++) {
       let scenario;
       if (scenarioType === 'mixed') {
-        const scenarioTypes = ['successful', 'identity_failure', 'tenure_discrepancy', 'income_failure', 'address_variations', 'employment_variations'];
+        const scenarioTypes = [
+          'successful', 'identity_failure', 'tenure_discrepancy', 'income_failure', 
+          'address_variations', 'employment_variations', 'self_employed', 'no_email',
+          'address_clarification', 'recent_job_change', 'partial_identity_failure'
+        ];
         const randomType = this.getRandomItem(scenarioTypes);
         scenario = await this.generateApplicant(randomType);
       } else {

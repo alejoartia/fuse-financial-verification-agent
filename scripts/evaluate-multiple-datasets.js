@@ -114,32 +114,72 @@ function simulateUserResponse(scenario, currentNodeId) {
       return 'Yes, this is me.';
       
     case 'IDENTITY_VERIFICATION_DOB':
+      // Handle partial identity failure scenario
+      if (scenario.scenario_name === 'partial_identity_failure_then_success') {
+        // First attempt with wrong DOB, then correct
+        return applicantData.first_attempt?.date_of_birth || applicantData.date_of_birth || '1985-03-15';
+      }
       return applicantData.date_of_birth || '1985-03-15';
       
     case 'IDENTITY_VERIFICATION_SSN':
+      // Handle partial identity failure scenario
+      if (scenario.scenario_name === 'partial_identity_failure_then_success') {
+        return applicantData.first_attempt?.ssn_last_four || applicantData.ssn_last_four || '7234';
+      }
       return applicantData.ssn_last_four || '7234';
       
     case 'IDENTITY_VERIFICATION_CONFIRM':
+      // Handle partial identity failure scenario - first attempt fails
+      if (scenario.scenario_name === 'partial_identity_failure_then_success') {
+        return 'No, that\'s not right. Let me try again.';
+      }
       return 'Yes, that\'s correct.';
       
+    case 'IDENTITY_VERIFICATION_RETRY':
+      // Second attempt for partial identity failure
+      if (scenario.scenario_name === 'partial_identity_failure_then_success') {
+        return applicantData.second_attempt?.date_of_birth || applicantData.date_of_birth;
+      }
+      return applicantData.date_of_birth || '1985-03-15';
+      
     case 'CONTACT_INFO_ADDRESS':
-      const address = applicantData.mailing_address;
+      const address = applicantData.mailing_address || applicantData.complete_address;
+      if (scenario.scenario_name === 'address_with_unit_clarification') {
+        // Initially provide address without unit
+        return applicantData.initial_address || `${address.street}, ${address.city}, ${address.state} ${address.zip_code}`;
+      }
       return `${address.street}, ${address.city}, ${address.state} ${address.zip_code}`;
       
     case 'CONTACT_INFO_UNIT':
-      const addressForUnit = applicantData.mailing_address;
+      const addressForUnit = applicantData.mailing_address || applicantData.complete_address;
+      if (scenario.scenario_name === 'address_with_unit_clarification') {
+        // Provide unit number when asked
+        return addressForUnit.unit || 'No unit number';
+      }
       return addressForUnit.unit || 'No unit number';
       
     case 'CONTACT_INFO_EMAIL':
+      // Handle no email scenario
+      if (scenario.scenario_name === 'no_email_provided') {
+        return 'I don\'t have an email address.';
+      }
       return applicantData.email || 'test@example.com';
       
     case 'EMPLOYMENT_INCOME':
       return `$${applicantData.monthly_income} per month`;
       
     case 'EMPLOYMENT_TENURE':
+      // Handle self-employed scenario
+      if (scenario.scenario_name === 'self_employed_applicant') {
+        return 'I\'m self-employed, so I don\'t have a traditional job tenure.';
+      }
       return `${applicantData.job_tenure_months} months`;
       
     case 'TENURE_DISCREPANCY_CHECK':
+      // Handle different scenarios
+      if (scenario.scenario_name === 'recent_job_change') {
+        return applicantData.job_change_reason || 'I changed jobs for career advancement.';
+      }
       return 'I started working there 6 months ago, but I was at my previous job for 2 years before that.';
       
     case 'FINAL_CONFIRMATION':
