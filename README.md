@@ -75,15 +75,28 @@ src/
 - OpenAI API Key
 - Git
 
-### **Installation**
+### **Automated Setup (Recommended)**
+```bash
+# Clone the repository
+git clone https://github.com/alejoartia/fuse-financial-verification-agent.git
+cd fuse-financial-verification-agent
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/alejoartia/fuse-financial-verification-agent.git
-   cd fuse-financial-verification-agent
-   ```
+# Run automated setup
+chmod +x setup.sh
+./setup.sh
+```
 
-2. **Install dependencies**
+The setup script will:
+- Check prerequisites (Node.js, npm)
+- Install dependencies
+- Configure environment variables
+- Create necessary directories
+- Generate initial mock data
+- Run tests to verify setup
+- Provide next steps and available commands
+
+### **Manual Setup**
+1. **Install dependencies**
    ```bash
    npm install
    ```
@@ -94,12 +107,22 @@ src/
    # Edit .env with your OpenAI API key
    ```
 
-4. **Set your OpenAI API key**
+3. **Create directories**
    ```bash
-   echo "OPENAI_API_KEY=your_api_key_here" > .env
+   mkdir -p logs data dashboard analysis
    ```
 
-## ⚙️ **Configuration**
+4. **Generate mock data**
+   ```bash
+   npm run generate:mixed
+   ```
+
+5. **Run tests**
+   ```bash
+   npm test
+   ```
+
+## Configuration
 
 ### **Essential Configuration**
 ```bash
