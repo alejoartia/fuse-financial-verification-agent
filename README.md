@@ -4,6 +4,21 @@
 
 A sophisticated Node.js conversational AI agent built with advanced state machine architecture, comprehensive testing frameworks, and production-ready features for secure financial and personal verification processes.
 
+## 📚 **Documentation Overview**
+
+| Document | Purpose | Audience |
+|----------|---------|----------|
+| **[README.md](README.md)** | Main project documentation and overview | All users |
+| **[README_QUICK_START.md](README_QUICK_START.md)** | Quick setup and getting started guide | Developers, new users |
+| **[README_TECHNICAL_DOCUMENTATION.md](README_TECHNICAL_DOCUMENTATION.md)** | Technical implementation and security analysis | Technical teams, architects |
+| **[USER_GUIDE.md](USER_GUIDE.md)** | Complete user guide for running the system | End users, operators |
+
+### **Quick Navigation**
+- **🚀 Getting Started**: See [README_QUICK_START.md](README_QUICK_START.md) for setup instructions
+- **🔧 Technical Details**: See [README_TECHNICAL_DOCUMENTATION.md](README_TECHNICAL_DOCUMENTATION.md) for architecture and security
+- **👥 User Guide**: See [USER_GUIDE.md](USER_GUIDE.md) for operational instructions
+- **📊 System Overview**: Continue reading this document for enterprise features
+
 ## 🏆 **Enterprise Features**
 
 ### **🔐 Security-First Architecture**
