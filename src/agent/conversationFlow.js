@@ -1,3 +1,5 @@
+import { formatSpokenDate, formatSpokenAddress, formatSpokenEmail, formatSpokenCurrency } from '../utils/formatters.js';
+
 export const nodes = {
   START: {
     id: 'START',
@@ -89,15 +91,15 @@ export const nodes = {
   FINAL_CONFIRMATION: {
     id: 'FINAL_CONFIRMATION',
     prompt: (context) => {
-      const data = context.collectedData;
-      const address = data.address;
+      const data = context.collectedData || {};
+      const address = data.address || {};
       const email = data.email ? formatSpokenEmail(data.email) : 'No email provided';
       
       // Build comprehensive summary
-      let summary = `Your date of birth is ${formatSpokenDate(data.dob)}. `;
+      let summary = `Your date of birth is ${formatSpokenDate(data.dob || 'Not provided')}. `;
       summary += `Your mailing address is ${formatSpokenAddress(address)}. `;
       summary += `Your email is ${email}. `;
-      summary += `Your monthly income is ${formatSpokenCurrency(data.monthlyIncome)}`;
+      summary += `Your monthly income is ${formatSpokenCurrency(data.monthlyIncome || 0)}`;
       
       // Add tenure information based on employment status
       if (data.employmentStatus === 'self_employed') {
